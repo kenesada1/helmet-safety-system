@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helmet-safety-system"
+version = "0.1.0"
+description = "Reproducible SHWD audit and Pascal VOC to YOLO conversion tools"
+requires-python = ">=3.10"
+dependencies = ["Pillow>=10"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+train = ["ultralytics==8.4.120"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.setuptools.packages.find]
+where = ["src"]

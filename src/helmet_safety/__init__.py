@@ -1,0 +1,1 @@
+"""Helmet safety data tooling."""
