@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="使用浏览器摄像头进行安全帽佩戴检测的实时监控页面"
+    />
+    <title>头盔安全实时监控</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>头盔安全实时监控</h1>
+          <p>浏览器摄像头 · E4 ONNX 推理</p>
+        </div>
+      </div>
+      <div class="header-status" aria-live="polite">
+        <span id="service-dot" class="status-dot status-dot--checking"></span>
+        <span id="service-status">正在连接模型服务</span>
+        <span class="header-divider" aria-hidden="true"></span>
+        <span id="model-id">模型：—</span>
+      </div>
+    </header>
+
+    <main class="monitor-shell">
+      <section class="monitor-workspace" aria-label="实时监控画面">
+        <div class="video-stage">
+          <video id="camera-video" muted playsinline aria-hidden="true"></video>
+          <canvas id="monitor-canvas" width="1280" height="720"></canvas>
+          <div class="video-status-bar">
+            <span id="monitor-state" class="monitor-state">
+              <span class="status-dot"></span>
+              等待启动
+            </span>
+            <span id="video-resolution">— × —</span>
+          </div>
+        </div>
+
+        <div class="stat-strip" aria-label="实时推理统计">
+          <article class="stat-item">
+            <span class="stat-label">推理 FPS</span>
+            <strong id="stat-fps">0.0</strong>
+            <small>端到端频率</small>
+          </article>
+          <article class="stat-item">
+            <span class="stat-label">推理延迟</span>
+            <strong><span id="stat-latency">—</span><em>ms</em></strong>
+            <small>模型处理耗时</small>
+          </article>
+          <article class="stat-item stat-item--safe">
+            <span class="stat-label">安全帽</span>
+            <strong id="stat-helmet">0</strong>
+            <small>当前画面</small>
+          </article>
+          <article class="stat-item stat-item--danger">
+            <span class="stat-label">未戴安全帽</span>
+            <strong id="stat-no-helmet">0</strong>
+            <small>当前画面</small>
+          </article>
+        </div>
+
+        <div id="notice" class="notice" role="status" aria-live="polite">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3 2.7 20h18.6L12 3Zm0 6v5m0 3.2v.1" />
+          </svg>
+          <span id="notice-text">点击“启动监控”后，浏览器会请求摄像头权限。</span>
+        </div>
+      </section>
+
+      <aside class="control-rail" aria-label="监控设置">
+        <section class="settings-section">
+          <div class="section-heading">
+            <div>
+              <h2>监控设置</h2>
+              <p>选择本机摄像头并控制推理频率</p>
+            </div>
+            <span id="camera-state" class="connection-label">未连接</span>
+          </div>
+
+          <label class="field-label" for="camera-select">摄像头</label>
+          <select id="camera-select" disabled>
+            <option value="">等待摄像头授权</option>
+          </select>
+
+          <div class="range-field">
+            <div class="field-row">
+              <label class="field-label" for="inference-interval">推理间隔</label>
+              <output id="interval-value" for="inference-interval">700 ms</output>
+            </div>
+            <input
+              id="inference-interval"
+              type="range"
+              min="300"
+              max="3000"
+              step="100"
+              value="700"
+            />
+            <div class="range-scale"><span>更实时</span><span>更省资源</span></div>
+          </div>
+
+          <div class="range-field">
+            <div class="field-row">
+              <label class="field-label" for="display-threshold">显示阈值</label>
+              <output id="threshold-value" for="display-threshold">0.50</output>
+            </div>
+            <input
+              id="display-threshold"
+              type="range"
+              min="0.10"
+              max="1"
+              step="0.05"
+              value="0.50"
+            />
+            <div class="range-scale"><span>更多结果</span><span>更高置信度</span></div>
+          </div>
+
+          <div class="button-row">
+            <button id="start-monitor" class="button button--primary" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z" /></svg>
+              启动监控
+            </button>
+            <button id="stop-monitor" class="button button--secondary" type="button" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z" /></svg>
+              停止监控
+            </button>
+          </div>
+        </section>
+
+        <section class="events-section">
+          <div class="section-heading section-heading--events">
+            <div>
+              <h2>最近检测</h2>
+              <p>最多保留 12 条当前会话记录</p>
+            </div>
+            <button id="clear-events" class="text-button" type="button">清空</button>
+          </div>
+          <div class="event-header" aria-hidden="true">
+            <span>时间</span><span>类别</span><span>置信度</span>
+          </div>
+          <ol id="event-list" class="event-list">
+            <li class="event-empty">监控启动后将在这里显示检测记录</li>
+          </ol>
+        </section>
+
+        <footer class="rail-footer">
+          <span>服务请求 <strong id="request-count">0</strong></span>
+          <span>错误 <strong id="error-count">0</strong></span>
+        </footer>
+      </aside>
+    </main>
+
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>
+

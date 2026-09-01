@@ -140,7 +140,7 @@ def test_smoke_train_help_exposes_core_training_parameters() -> None:
     """训练入口应可直接运行，并公开数据、批量、epoch、设备和运行名参数。"""
 
     result = subprocess.run(
-        [sys.executable, str(PROJECT_ROOT / "scripts" / "smoke_train.py"), "--help"],
+        [sys.executable, str(PROJECT_ROOT / "scripts" / "train" / "train_smoke.py"), "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

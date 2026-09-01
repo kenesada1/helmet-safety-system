@@ -1,0 +1,17 @@
+seed: 42
+
+paths:
+  # Keep raw SHWD read-only. Override this path per machine without editing scripts.
+  raw_shwd: data/raw/SHWD/VOC2028
+  pipeline_root: artifacts/pipeline
+
+conversion:
+  precision: 8
+
+validation:
+  pixel_tolerance: 0.01
+  samples_per_split: 24
+
+ci_smoke:
+  output: artifacts/pipeline/ci-smoke
+

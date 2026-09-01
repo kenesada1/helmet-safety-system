@@ -86,9 +86,7 @@ def _replace_element_contents(data: bytes, tag: bytes) -> tuple[bytes, bool]:
 
 
 def _parse_required_int(root: ET.Element, xpath: str, xml_path: Path) -> int:
-    """读取必需的 XML 节点并转成整数，缺失或格式错误时给出文件级定位信息。"""
-
-    # findtext 返回节点文字；找不到节点时返回 None。
+    # findtext 返回节点文字；找不到节点时返回None。
     text = root.findtext(xpath)
     if text is None:
         raise VocParseError(f"{xml_path.name}: missing required node {xpath}")
@@ -100,8 +98,6 @@ def _parse_required_int(root: ET.Element, xpath: str, xml_path: Path) -> int:
 
 
 def _parse_required_float(node: ET.Element, tag: str, xml_path: Path, object_index: int) -> float:
-    """读取一个检测框坐标并转成浮点数，错误信息包含 XML 和对象序号。"""
-
     text = node.findtext(tag)
     if text is None:
         raise VocParseError(f"{xml_path.name}: object {object_index} missing bndbox/{tag}")

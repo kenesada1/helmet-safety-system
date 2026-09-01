@@ -7,7 +7,7 @@ import sys
 from PIL import Image
 import pytest
 
-from helmet_safety.training import m45_e2
+from helmet_safety.training import analysis_core
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -27,7 +27,7 @@ def test_select_tiny_val_images_uses_original_pixel_size_and_inclusive_boundary(
     (labels_dir / "boundary.txt").write_text("1 0.5 0.5 0.1 0.2\n", encoding="utf-8")
     (labels_dir / "large.txt").write_text("0 0.5 0.5 0.2 0.4\n", encoding="utf-8")
 
-    selected = m45_e2.select_tiny_val_images(images_dir, labels_dir, max_equivalent_size=10.0)
+    selected = analysis_core.select_tiny_val_images(images_dir, labels_dir, max_equivalent_size=10.0)
 
     assert selected == [
         {
@@ -53,7 +53,7 @@ def test_tiny_summary_matches_all_ground_truth_before_counting_tiny_only() -> No
         }
     ]
 
-    result = m45_e2.summarize_tiny_ground_truth(records, max_equivalent_size=10.0, iou_threshold=0.5)
+    result = analysis_core.summarize_tiny_ground_truth(records, max_equivalent_size=10.0, iou_threshold=0.5)
 
     assert result["summary"] == {
         "images": 1,
@@ -95,12 +95,12 @@ def test_assert_expected_tiny_summary_stops_on_mismatch() -> None:
     }
 
     with pytest.raises(RuntimeError, match="tiny benchmark mismatch"):
-        m45_e2.assert_expected_tiny_summary(actual)
+        analysis_core.assert_expected_tiny_summary(actual)
 
 
 def test_e4_tiny_cli_exposes_only_the_fixed_val_protocol() -> None:
     result = subprocess.run(
-        [sys.executable, str(PROJECT_ROOT / "scripts" / "reproduce_e4_tiny.py"), "--help"],
+        [sys.executable, str(PROJECT_ROOT / "scripts" / "analyze" / "reproduce_e4_tiny.py"), "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -141,7 +141,7 @@ def test_conf_evaluation_uses_all_gt_for_fp_and_identifies_recovered_baseline_fn
         }
     ]
 
-    result = m45_e2.evaluate_tiny_conf_records(records, baseline_fn, max_equivalent_size=10.0, iou_threshold=0.5)
+    result = analysis_core.evaluate_tiny_conf_records(records, baseline_fn, max_equivalent_size=10.0, iou_threshold=0.5)
 
     assert result["summary"]["tp"] == 1
     assert result["summary"]["fn"] == 0
@@ -175,7 +175,7 @@ def test_conf_sweep_markdown_contains_comparison_and_recovered_ids() -> None:
         }
     ]
 
-    markdown = m45_e2.render_tiny_conf_markdown(rows, analysis="结论文本")
+    markdown = analysis_core.render_tiny_conf_markdown(rows, analysis="结论文本")
 
     assert "| 0.2 | 80 | 48 | 0.625000" in markdown
     assert "a.jpg:0; b.jpg:1; c.jpg:2" in markdown
@@ -184,7 +184,7 @@ def test_conf_sweep_markdown_contains_comparison_and_recovered_ids() -> None:
 
 def test_e4_tiny_conf_sweep_cli_locks_all_seven_conf_values() -> None:
     result = subprocess.run(
-        [sys.executable, str(PROJECT_ROOT / "scripts" / "sweep_e4_tiny_conf.py"), "--help"],
+        [sys.executable, str(PROJECT_ROOT / "scripts" / "analyze" / "sweep_e4_tiny_conf.py"), "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -211,7 +211,7 @@ def test_duplicate_box_audit_counts_only_same_class_pairs_at_or_above_threshold(
         }
     ]
 
-    result = m45_e2.audit_obvious_duplicate_boxes(records, duplicate_iou_threshold=0.7)
+    result = analysis_core.audit_obvious_duplicate_boxes(records, duplicate_iou_threshold=0.7)
 
     assert result["duplicate_pairs"] == 1
     assert result["images_with_duplicates"] == 1
@@ -249,7 +249,7 @@ def test_nms_iou_markdown_contains_duplicate_audit_and_recovered_ids() -> None:
         }
     ]
 
-    markdown = m45_e2.render_tiny_nms_iou_markdown(rows, analysis="NMS结论")
+    markdown = analysis_core.render_tiny_nms_iou_markdown(rows, analysis="NMS结论")
 
     assert "| 0.80 | 79 | 49 | 0.617188" in markdown
     assert "| 4 | 2 | 是 |" in markdown
@@ -259,7 +259,7 @@ def test_nms_iou_markdown_contains_duplicate_audit_and_recovered_ids() -> None:
 
 def test_e4_tiny_nms_iou_sweep_cli_locks_all_six_values() -> None:
     result = subprocess.run(
-        [sys.executable, str(PROJECT_ROOT / "scripts" / "sweep_e4_tiny_nms_iou.py"), "--help"],
+        [sys.executable, str(PROJECT_ROOT / "scripts" / "analyze" / "sweep_e4_tiny_nms_iou.py"), "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -288,7 +288,7 @@ def test_e4_tiny_nms_iou_sweep_cli_locks_all_six_values() -> None:
     ],
 )
 def test_localization_bucket_boundaries(max_iou: float | None, expected: str) -> None:
-    assert m45_e2.localization_bucket_for_iou(max_iou) == expected
+    assert analysis_core.localization_bucket_for_iou(max_iou) == expected
 
 
 def test_fn_candidate_analysis_keeps_confidence_and_iou_maxima_independent() -> None:
@@ -320,7 +320,7 @@ def test_fn_candidate_analysis_keeps_confidence_and_iou_maxima_independent() -> 
         ],
     }
 
-    result = m45_e2.analyze_fn_candidate_evidence(original_false_negatives, predictions_by_image)
+    result = analysis_core.analyze_fn_candidate_evidence(original_false_negatives, predictions_by_image)
 
     first = result["details"][0]
     assert first["correct_class_candidate_count"] == 2
@@ -346,7 +346,7 @@ def test_fn_candidate_analysis_keeps_confidence_and_iou_maxima_independent() -> 
 
 def test_e4_fn_localization_cli_locks_low_conf_and_default_nms() -> None:
     result = subprocess.run(
-        [sys.executable, str(PROJECT_ROOT / "scripts" / "analyze_e4_fn_localization.py"), "--help"],
+        [sys.executable, str(PROJECT_ROOT / "scripts" / "analyze" / "analyze_e4_fn_localization.py"), "--help"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -359,3 +359,94 @@ def test_e4_fn_localization_cli_locks_low_conf_and_default_nms() -> None:
     assert "default NMS" in result.stdout
     for forbidden in ("--split", "--imgsz", "--conf", "--matching-iou", "--nms-iou", "--weights"):
         assert forbidden not in result.stdout
+
+
+def test_fixed_threshold_summary_counts_overall_and_per_class_fp() -> None:
+    records = [
+        {
+            "image_id": "one.jpg",
+            "ground_truth": [
+                {"class_id": 0, "box": [0.0, 0.0, 10.0, 10.0]},
+                {"class_id": 1, "box": [20.0, 20.0, 30.0, 30.0]},
+                {"class_id": 1, "box": [40.0, 40.0, 50.0, 50.0]},
+            ],
+            "predictions": [
+                {"class_id": 0, "box": [0.0, 0.0, 10.0, 10.0]},
+                {"class_id": 0, "box": [60.0, 60.0, 70.0, 70.0]},
+                {"class_id": 1, "box": [20.0, 20.0, 30.0, 30.0]},
+                {"class_id": 1, "box": [80.0, 80.0, 90.0, 90.0]},
+            ],
+        }
+    ]
+
+    result = analysis_core.summarize_fixed_threshold_detections(records, iou_threshold=0.5)
+
+    assert result["overall"] == {
+        "images": 1,
+        "ground_truth": 3,
+        "predictions": 4,
+        "tp": 2,
+        "fn": 1,
+        "fp": 2,
+        "precision": 0.5,
+        "recall": 2 / 3,
+        "f1": 4 / 7,
+        "fp_per_image": 2.0,
+    }
+    assert result["per_class"]["helmet"]["tp"] == 1
+    assert result["per_class"]["helmet"]["fn"] == 0
+    assert result["per_class"]["helmet"]["fp"] == 1
+    assert result["per_class"]["helmet"]["precision"] == 0.5
+    assert result["per_class"]["helmet"]["recall"] == 1.0
+    assert result["per_class"]["no_helmet"]["tp"] == 1
+    assert result["per_class"]["no_helmet"]["fn"] == 1
+    assert result["per_class"]["no_helmet"]["fp"] == 1
+    assert result["per_class"]["no_helmet"]["precision"] == 0.5
+    assert result["per_class"]["no_helmet"]["recall"] == 0.5
+
+
+def test_e4_full_val_p0_cli_locks_four_config_matrix() -> None:
+    result = subprocess.run(
+        [sys.executable, str(PROJECT_ROOT / "scripts" / "evaluate" / "evaluate_e4_full_val.py"), "--help"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    for label in ("baseline: conf=0.25/NMS=0.70", "A: conf=0.20/NMS=0.70", "B: conf=0.25/NMS=0.50", "C: conf=0.20/NMS=0.50"):
+        assert label in result.stdout
+    for forbidden in ("--split", "--imgsz", "--conf", "--matching-iou", "--nms-iou", "--weights"):
+        assert forbidden not in result.stdout
+
+
+def test_validated_streaming_source_returns_directory_without_materializing_all_images(tmp_path: Path) -> None:
+    images_dir = tmp_path / "val"
+    images_dir.mkdir()
+    _write_image(images_dir / "a.jpg", (10, 10))
+    _write_image(images_dir / "b.png", (10, 10))
+
+    source = analysis_core.validated_streaming_image_source(images_dir, expected_images=2)
+
+    assert source == str(images_dir.resolve())
+    with pytest.raises(RuntimeError, match="image count mismatch"):
+        analysis_core.validated_streaming_image_source(images_dir, expected_images=3)
+
+
+def test_p0_record_summary_exposes_direct_tiny_metrics_contract() -> None:
+    records = [
+        {
+            "image_id": "tiny.jpg",
+            "ground_truth": [{"class_id": 1, "box": [0.0, 0.0, 10.0, 10.0]}],
+            "predictions": [{"class_id": 1, "box": [0.0, 0.0, 10.0, 10.0]}],
+        }
+    ]
+
+    result = analysis_core.summarize_p0_records(records, matching_iou=0.5, duplicate_iou=0.7)
+
+    assert result["fixed_threshold_metrics"]["overall"]["tp"] == 1
+    assert result["tiny_metrics"]["ground_truth_instances"] == 1
+    assert result["tiny_metrics"]["tp"] == 1
+    assert result["tiny_metrics"]["fn"] == 0
+    assert result["duplicate_audit"]["duplicate_pairs"] == 0

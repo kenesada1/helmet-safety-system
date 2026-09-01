@@ -1,0 +1,2 @@
+"""Automated project quality gates."""
+

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "repository_root": "..",
+  "generated_at": "2026-09-01T00:00:00+08:00",
+  "models": {
+    "e4-yolo11s-960-onnx": {
+      "experiment": "E4",
+      "stage": "production",
+      "backend": "onnx",
+      "artifact": "artifacts/deployment/e4_yolo11s_960.onnx",
+      "sha256": "99a31016ed13bec9c5e3edee6a25cc002455f620dfdf7f98bb8e7fe7b054c3f2",
+      "report": "artifacts/deployment/e4_yolo11s_960_export.json",
+      "classes": {
+        "0": "helmet",
+        "1": "no_helmet"
+      },
+      "imgsz": 960,
+      "opset": 17,
+      "source_model": "e4-yolo11s-960-pytorch"
+    },
+    "e4-yolo11s-960-pytorch": {
+      "experiment": "E4",
+      "stage": "production",
+      "backend": "pytorch",
+      "artifact": "artifacts/training/m45_yolo11s_e75_960_001/weights/best.pt",
+      "sha256": "5fe1e6d2e06264840483d45bd89c72cc071a01ac57d252eb227e914448baa9e9",
+      "report": "artifacts/evaluation/m45_yolo11s_e75_960_val_001/e0_e4_unified_comparison.json",
+      "classes": {
+        "0": "helmet",
+        "1": "no_helmet"
+      },
+      "imgsz": 960
+    }
+  }
+}
+

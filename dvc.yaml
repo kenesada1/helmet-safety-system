@@ -1,0 +1,70 @@
+stages:
+  audit_shwd:
+    cmd: >-
+      python scripts/data/audit_shwd.py
+      --raw ${paths.raw_shwd}
+      --output ${paths.pipeline_root}/audit
+    deps:
+      - ${paths.raw_shwd}
+      - scripts/data/audit_shwd.py
+      - src/helmet_safety/data/audit.py
+    params:
+      - paths.raw_shwd
+      - paths.pipeline_root
+    outs:
+      - ${paths.pipeline_root}/audit
+
+  convert_shwd:
+    cmd: >-
+      python scripts/data/convert_shwd.py
+      --raw ${paths.raw_shwd}
+      --output ${paths.pipeline_root}/processed
+      --precision ${conversion.precision}
+      --force
+    deps:
+      - ${paths.raw_shwd}
+      - scripts/data/convert_shwd.py
+      - src/helmet_safety/data/convert.py
+      - src/helmet_safety/data/voc.py
+    params:
+      - paths.raw_shwd
+      - paths.pipeline_root
+      - conversion.precision
+    outs:
+      - ${paths.pipeline_root}/processed
+
+  validate_dataset:
+    cmd: >-
+      python scripts/data/validate_yolo_dataset.py
+      --raw ${paths.raw_shwd}
+      --processed ${paths.pipeline_root}/processed
+      --output ${paths.pipeline_root}/validation
+      --pixel-tolerance ${validation.pixel_tolerance}
+      --samples-per-split ${validation.samples_per_split}
+      --seed ${seed}
+    deps:
+      - ${paths.raw_shwd}
+      - ${paths.pipeline_root}/processed
+      - scripts/data/validate_yolo_dataset.py
+      - src/helmet_safety/data/validate.py
+    params:
+      - seed
+      - paths.raw_shwd
+      - paths.pipeline_root
+      - validation.pixel_tolerance
+      - validation.samples_per_split
+    outs:
+      - ${paths.pipeline_root}/validation
+
+  ci_smoke:
+    cmd: >-
+      python scripts/ci/run_training_smoke.py
+      --output ${ci_smoke.output}
+      --force
+    deps:
+      - scripts/ci/run_training_smoke.py
+      - src/helmet_safety/training/ci_smoke.py
+    params:
+      - ci_smoke.output
+    outs:
+      - ${ci_smoke.output}

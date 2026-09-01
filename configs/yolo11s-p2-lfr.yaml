@@ -1,0 +1,50 @@
+# Project-local E7 YOLO11s-P2 detector with P2-only lightweight refinement.
+# Ultralytics installation files are untouched.
+nc: 2
+scale: s
+scales:
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [-1, 2, C3k2, [256, false, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [-1, 2, C3k2, [512, false, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [-1, 2, C3k2, [512, true]]
+  - [-1, 1, Conv, [1024, 3, 2]]
+  - [-1, 2, C3k2, [1024, true]]
+  - [-1, 1, SPPF, [1024, 5]]
+  - [-1, 2, C2PSA, [1024]]
+
+head:
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [[-1, 6], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, false]]
+
+  - [-1, 1, nn.Upsample, [null, 2, nearest]]
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, false]]
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, false]]
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]]
+  - [-1, 2, C3k2, [1024, true]]
+
+  # E6 P2 fusion. Layers 0-25 are structurally identical to E6.
+  - [16, 1, nn.Upsample, [null, 2, nearest]]
+  - [[-1, 2], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, false]]
+
+  # E7 changes only the P2 tensor immediately before Detect.
+  # Scale s produces 128 P2 channels, and the module preserves C/H/W.
+  - [-1, 1, LiteFeatureRefinement, [128]]
+  - [[26, 16, 19, 22], 1, Detect, [nc]]

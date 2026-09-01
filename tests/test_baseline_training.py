@@ -16,7 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_train_script() -> object:
-    spec = importlib.util.spec_from_file_location("train_baseline", PROJECT_ROOT / "scripts" / "train_baseline.py")
+    spec = importlib.util.spec_from_file_location("train_baseline", PROJECT_ROOT / "scripts" / "train" / "train_baseline.py")
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -339,8 +339,8 @@ def test_validate_baseline_outputs_requires_all_requested_training_artifacts(tmp
 @pytest.mark.parametrize(
     ("script_name", "required_options"),
     [
-        ("train_baseline.py", ("--data", "--model", "--epochs", "--patience", "--batch", "--device")),
-        ("evaluate_baseline.py", ("--training-report", "--split", "--prediction-count", "--conf")),
+        ("train/train_baseline.py", ("--data", "--model", "--epochs", "--patience", "--batch", "--device")),
+        ("evaluate/evaluate_baseline.py", ("--training-report", "--split", "--prediction-count", "--conf")),
     ],
 )
 def test_m4_command_line_entries_expose_reproducibility_controls(

@@ -5,13 +5,40 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "helmet-safety-system"
 version = "0.1.0"
-description = "Reproducible SHWD audit and Pascal VOC to YOLO conversion tools"
+description = "Production-oriented helmet safety detection system with reproducible training, inference, tracking, and ONNX serving"
 requires-python = ">=3.10"
 dependencies = ["Pillow>=10"]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
 train = ["ultralytics==8.4.120"]
+inference = ["ultralytics==8.4.120", "opencv-python>=4.10", "PyYAML>=6"]
+deployment = [
+  "ultralytics==8.4.120",
+  "opencv-python>=4.10",
+  "PyYAML>=6",
+  "onnx>=1.17",
+  "onnxruntime>=1.19",
+]
+deployment-cuda = [
+  "ultralytics==8.4.120",
+  "opencv-python>=4.10",
+  "PyYAML>=6",
+  "onnx>=1.17",
+  "onnxruntime-gpu>=1.19",
+]
+service = [
+  "ultralytics==8.4.120",
+  "opencv-python>=4.10",
+  "onnxruntime>=1.19",
+  "fastapi>=0.116,<1",
+  "uvicorn[standard]>=0.35,<1",
+  "python-multipart>=0.0.20,<1",
+]
+pipeline = ["dvc>=3.63,<4"]
+
+[tool.fastapi]
+entrypoint = "helmet_safety.service.api:app"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
