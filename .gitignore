@@ -8,3 +8,5 @@ build/
 artifacts/
 tmp/
 /yolo26n.pt
+/任务清单.md
+scripts/*.ps1
