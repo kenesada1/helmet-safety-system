@@ -350,7 +350,43 @@ dvc repro ci_smoke
 
 ---
 
-## 九、环境与依赖
+## 九、参考论文与行业依据
+
+项目的方法学设计、实验方向与生产验收门槛都有明确的文献依据，完整调研过程与来源列表见 `_knowledge_base/` 的两篇研究笔记。以下按用途分类列出实际参考的关键论文与标准。
+
+### 9.1 微小目标检测方法学（E5-E8 实验依据）
+
+对应 E5a 重采样、E5b 上下文裁剪与 E6-E8 结构优化的设计决策：
+
+| 主题 | 文献 | 在本项目的用途 |
+|---|---|---|
+| 小目标数据增强 | Kisantal 等，《Augmentation for small object detection》（arXiv:1902.07296, 2019） | E5a 整图过采样"以小换大"权衡的直接证据 |
+| 尺度匹配 | Yu 等，《Scale Match for Tiny Person Detection》（WACV 2020） | 裁剪训练须控制放大后的尺度分布 |
+| 微小框度量 | Wang 等，《A Normalized Gaussian Wasserstein Distance for Tiny Object Detection》（arXiv:2110.13389, 2021） | 微小框定位对 IoU 极敏感的理论解释 |
+| 尺度受控训练 | SNIP（CVPR 2018）/ SNIPER（arXiv:1805.09300） | E5b「上下文裁剪 + 尺度上限」设计依据 |
+| 稀疏高分辨率 | Yang 等，《QueryDet: Cascaded Sparse Query...》（CVPR 2022） | 局部高分辨率的长期部署方向 |
+| 感受野标签分配 | Xu 等，《RFLA: Receptive Field Attention...》（ECCV 2022） | 微小目标正样本分配的研究方向 |
+| 困难样本 | 《OHEM》（arXiv:1604.03540, 2016）；《Focal Loss for Dense Object Detection》（ICCV 2017） | 密集/困难样本平衡依据 |
+| 上下文增强 | 《Context-driven Data Augmentation for Object Detection》（2018）；《Traffic Context Aware Data Augmentation》（arXiv:2205.00376, 2022） | 目标级复制须保留上下文而非孤立粘贴 |
+
+### 9.2 安全帽检测与生产召回（生产验收门槛依据）
+
+项目生产化验收参考的论文、标准与公开项目：
+
+| 主题 | 文献 | 在本项目的用途 |
+|---|---|---|
+| **改进 YOLOv10 安全帽检测** | Dong, Wang, **Miao（同济大学）** 等，《Improved YOLOv10-based real-time helmet detection algorithm for complex scenarios》，J. Real-Time Image Processing 22(6), 2025，**DOI: 10.1007/s11554-025-01775-y** | 行业水平参照：YOLOv10n-WDE 在 SHWD 上 Precision=92.9%、Recall=87.6%，与本项目 E4/E6 指标对标 |
+| SHWD 数据集局限 | 改进 YOLOv5 安全帽研究（PMC11021566, 2024） | SHWD 缺少复杂现场小目标，需独立现场验证集 |
+| 电力 PPE 检测 | MRC-DETR 电力作业 PPE 研究（PMC12251792, 2025） | helmet Recall 约 94.8% 的公开高水平参照 |
+| AI 风险管理 | NIST AI RMF（airc.nist.gov）；ISO/IEC 23894:2023 | 无统一召回及格线，风险容忍度由应用上下文决定 |
+| 事件级验收 | Bosch 视频分析基准白皮书（2023） | 按漏报/误报与误报/小时衡量，而非逐帧指标 |
+| 监管标准 | OSHA 1910.135 头部防护 | AI 不能替代雇主安全管理责任 |
+
+> 说明：`_knowledge_base/research-helmet-tiny-object-optimization-20260821.md` 与 `research-ppe-detection-production-recall-20260826.md` 完整记录了两轮调研的来源 URL 与推理过程。9.2 首条的权威引用以期刊 DOI 为准；同济大学为合著单位（Duoqian Miao，同济大学计算机科学与技术学院），该论文在复杂场景安全帽检测上提出 YOLOv10n-WDE（小波动态增强），与本项目的微小目标与实时性研究方向高度相关。
+
+---
+
+## 十、环境与依赖
 
 - Python ≥ 3.10（本机实测 3.14.3）
 - 训练/推理核心依赖：`ultralytics==8.4.120`、`opencv-python>=4.10`
@@ -373,7 +409,7 @@ dvc repro ci_smoke
 
 ---
 
-## 十、目录结构
+## 十一、目录结构
 
 ```text
 src/helmet_safety/        核心库（data / training / inference / tracking / service / quality）
